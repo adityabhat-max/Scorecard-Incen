@@ -5,8 +5,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { ratingBadgeVariant } from "@/lib/scoring-display";
+import { ScoreRing } from "@/components/score-ring";
 
 const RATING_ORDER = ["Exceptional", "Good", "Satisfactory", "Needs Improvement", "Unsatisfactory"];
+
+// Mirrors the rating_bands in kpi_config — used only to color the average
+// score ring, not stored or computed by calculate_scores().
+function ratingForScore(score: number): string {
+  if (score >= 90) return "Exceptional";
+  if (score >= 80) return "Good";
+  if (score >= 70) return "Satisfactory";
+  if (score >= 60) return "Needs Improvement";
+  return "Unsatisfactory";
+}
 
 export async function LocationOverview({ locationId }: { locationId: string }) {
   const supabase = await createClient();
@@ -62,7 +73,9 @@ export async function LocationOverview({ locationId }: { locationId: string }) {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Average Score</CardTitle>
           </CardHeader>
-          <CardContent className="text-2xl font-semibold">{avg}/100</CardContent>
+          <CardContent className="flex justify-center pb-1">
+            <ScoreRing score={avg} rating={ratingForScore(avg)} size={72} />
+          </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">

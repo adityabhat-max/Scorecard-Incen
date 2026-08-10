@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScoreTrendChart } from "@/components/score-trend-chart";
+import { ScoreRing } from "@/components/score-ring";
 import type { KpiConfigShape } from "@/lib/database.types";
 
 export async function StaffScorecard({ staffMemberId }: { staffMemberId: string }) {
@@ -75,8 +76,8 @@ export async function StaffScorecard({ staffMemberId }: { staffMemberId: string 
               {staff.employee_code && ` · ${staff.employee_code}`}
             </div>
           </div>
-          <div className="text-right">
-            <div className="text-3xl font-semibold">{latest.final_score}/100</div>
+          <div className="flex flex-col items-center gap-2">
+            <ScoreRing score={latest.final_score} rating={latest.rating} size={112} />
             <Badge variant={ratingBadgeVariant(latest.rating)}>{latest.rating}</Badge>
           </div>
         </CardHeader>
