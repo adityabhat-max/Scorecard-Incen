@@ -1,0 +1,4 @@
+Profile,Service By Perfomed,Attendance Punctuality,Leave %,Absent without leave %,Attendance Regularization,Service Utilization %,Missed customer Signiture %,Prescription sign missed Ratio,Client Escalations %,Center,Aplicable - Status
+TH,Jane Therapist (EXAMPLE),0.97,0.02,0,0.03,0.65,0.01,,0.01,Vasant Vihar,Applicable
+Dr,Dr Sample Example,0.9,0.05,0,0.1,0.55,,0.15,0.03,Greater Kailash,Applicable
+Saloon,Sample Salon Staff,0.8,0.1,0,0.05,0.4,0.02,,0.02,Mumbai,Not Applicable
