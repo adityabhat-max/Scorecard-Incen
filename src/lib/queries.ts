@@ -143,6 +143,107 @@ export async function getKpiConfigById(supabase: Client, id: string) {
   return data;
 }
 
+export interface LocationSummary {
+  locationId: string;
+  locationName: string;
+  period: string | null;
+  staffScored: number;
+  avgScore: number;
+  distribution: Record<string, number>;
+}
+
+export interface CompanyOverview {
+  locations: LocationSummary[];
+  totalStaffScored: number;
+  totalStaffOnRoster: number;
+  companyAvgScore: number;
+  companyDistribution: Record<string, number>;
+  topPerformers: (ScorecardRow & { locationName: string })[];
+  needsAttention: (ScorecardRow & { locationName: string })[];
+  profileTypeBreakdown: { profileType: string; count: number; avgScore: number }[];
+}
+
+const RATING_ORDER = ["Exceptional", "Good", "Satisfactory", "Needs Improvement", "Unsatisfactory"];
+
+// Company-wide roll-up for the org_level_executive landing page: pulls each
+// location's most recent batch (periods can differ across locations — not
+// every location has uploaded the same month yet) and aggregates across all
+// of them. N+1-ish (one pair of queries per location) but there are only a
+// handful of locations, so this stays simple rather than needing a SQL view.
+export async function getCompanyOverview(supabase: Client): Promise<CompanyOverview> {
+  const locations = await getLocations(supabase);
+
+  const { count: totalStaffOnRoster } = await supabase
+    .from("staff_members")
+    .select("*", { count: "exact", head: true })
+    .eq("active", true);
+
+  const perLocation = await Promise.all(
+    locations.map(async (loc) => {
+      const batch = await getLatestBatchForLocation(supabase, loc.id);
+      const scorecards = batch ? await getScorecardsForBatch(supabase, batch.id) : [];
+      return { location: loc, batch, scorecards };
+    }),
+  );
+
+  const locationSummaries: LocationSummary[] = perLocation.map(({ location, batch, scorecards }) => {
+    const distribution: Record<string, number> = {};
+    for (const label of RATING_ORDER) distribution[label] = 0;
+    for (const s of scorecards) distribution[s.rating] = (distribution[s.rating] ?? 0) + 1;
+
+    return {
+      locationId: location.id,
+      locationName: location.name,
+      period: batch?.period ?? null,
+      staffScored: scorecards.length,
+      avgScore:
+        scorecards.length > 0
+          ? Math.round(scorecards.reduce((sum, s) => sum + s.finalScore, 0) / scorecards.length)
+          : 0,
+      distribution,
+    };
+  });
+
+  const allScorecards = perLocation.flatMap(({ location, scorecards }) =>
+    scorecards.map((s) => ({ ...s, locationName: location.name })),
+  );
+
+  const companyDistribution: Record<string, number> = {};
+  for (const label of RATING_ORDER) companyDistribution[label] = 0;
+  for (const s of allScorecards) companyDistribution[s.rating] = (companyDistribution[s.rating] ?? 0) + 1;
+
+  const sorted = [...allScorecards].sort((a, b) => b.finalScore - a.finalScore);
+
+  const profileTypeMap = new Map<string, { count: number; total: number }>();
+  for (const s of allScorecards) {
+    const entry = profileTypeMap.get(s.profileType) ?? { count: 0, total: 0 };
+    entry.count += 1;
+    entry.total += s.finalScore;
+    profileTypeMap.set(s.profileType, entry);
+  }
+
+  return {
+    locations: locationSummaries,
+    totalStaffScored: allScorecards.length,
+    totalStaffOnRoster: totalStaffOnRoster ?? allScorecards.length,
+    companyAvgScore:
+      allScorecards.length > 0
+        ? Math.round(allScorecards.reduce((sum, s) => sum + s.finalScore, 0) / allScorecards.length)
+        : 0,
+    companyDistribution,
+    topPerformers: sorted.slice(0, 5),
+    needsAttention: sorted
+      .filter((s) => s.rating === "Unsatisfactory" || s.rating === "Needs Improvement")
+      .slice(-8)
+      .reverse(),
+    profileTypeBreakdown: Array.from(profileTypeMap.entries()).map(([profileType, { count, total }]) => ({
+      profileType,
+      count,
+      avgScore: Math.round(total / count),
+    })),
+  };
+}
+
 export async function getKpiConfig(
   supabase: Client,
   profileType: Database["public"]["Tables"]["staff_members"]["Row"]["profile_type"],
