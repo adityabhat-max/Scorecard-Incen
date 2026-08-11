@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScoreTrendChart } from "@/components/score-trend-chart";
 import { ScoreRing } from "@/components/score-ring";
+import { ScoreProgressBar } from "@/components/score-progress-bar";
 import type { KpiConfigShape } from "@/lib/database.types";
 
 export async function StaffScorecard({ staffMemberId }: { staffMemberId: string }) {
@@ -89,6 +90,12 @@ export async function StaffScorecard({ staffMemberId }: { staffMemberId: string 
             </p>
           </CardContent>
         )}
+      </Card>
+
+      <Card>
+        <CardContent>
+          <ScoreProgressBar score={latest.final_score} rating={latest.rating} />
+        </CardContent>
       </Card>
 
       {raw && kpiConfig && (

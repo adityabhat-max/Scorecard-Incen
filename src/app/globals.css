@@ -142,3 +142,29 @@
     @apply font-sans;
   }
 }
+
+/* Score progress bar entrance — fills/slides in from 0 to --fill-width on
+   load, set per-instance via inline style. Pure CSS so the component stays
+   a Server Component; @media (prefers-reduced-motion) below still applies. */
+@keyframes score-bar-grow {
+  from {
+    width: 0%;
+  }
+  to {
+    width: var(--fill-width, 0%);
+  }
+}
+@keyframes score-flag-slide {
+  from {
+    left: 0%;
+  }
+  to {
+    left: var(--fill-width, 0%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .score-bar-fill,
+  .score-bar-flag {
+    animation: none !important;
+  }
+}

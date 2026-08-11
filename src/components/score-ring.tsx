@@ -2,18 +2,7 @@
 // unfilled track is the same color at low opacity so the state reads across
 // the whole ring, not just the filled arc. Center number stays in the sans
 // UI font, never the serif heading face, per the "hero figure" convention.
-// Traffic-light read for the ring specifically (vs. the gold/taupe/rose
-// badges elsewhere) — red/green/blue at a glance, CVD-checked: red<->green
-// sits at ΔE 7.8 (deutan), inside the 6-8 warn band, which is only legal
-// paired with a text label — every ring here always has the number in the
-// center plus a rating badge alongside, so that condition holds.
-const RATING_COLOR: Record<string, string> = {
-  Exceptional: "#5ec8f2",
-  Good: "#5ec8f2",
-  Satisfactory: "#10b981",
-  "Needs Improvement": "#e5484d",
-  Unsatisfactory: "#e5484d",
-};
+import { RATING_COLOR } from "@/lib/scoring-display";
 
 export function ScoreRing({
   score,
