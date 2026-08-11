@@ -21,7 +21,7 @@ interface UploadResponse {
   error?: string;
 }
 
-export function UploadForm() {
+export function UploadForm({ showHeader = true }: { showHeader?: boolean } = {}) {
   const formRef = useRef<HTMLFormElement>(null);
   const [loading, setLoading] = useState(false);
   const [response, setResponse] = useState<UploadResponse | null>(null);
@@ -39,33 +39,41 @@ export function UploadForm() {
     setLoading(false);
   }
 
+  const form = (
+    <form ref={formRef} onSubmit={handleSubmit} className="flex flex-col gap-4">
+      {showHeader && (
+        <p className="text-sm text-muted-foreground">
+          Upload the monthly &quot;Final Report&quot;-shaped export (.csv or .xlsx) — same
+          columns as the existing Zenoti/HRMS consolidated report. Rows are automatically
+          grouped by Center and scored per the current KPI config.
+        </p>
+      )}
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="period">Period</Label>
+        <Input id="period" name="period" type="month" required className="max-w-xs" />
+      </div>
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="file">Report file</Label>
+        <Input id="file" name="file" type="file" accept=".csv,.xlsx,.xls" required />
+      </div>
+      <Button type="submit" disabled={loading} className="w-fit">
+        {loading ? "Processing..." : "Upload and calculate scores"}
+      </Button>
+    </form>
+  );
+
   return (
     <div className="flex flex-col gap-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Upload Monthly Report</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form ref={formRef} onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <p className="text-sm text-muted-foreground">
-              Upload the monthly &quot;Final Report&quot;-shaped export (.csv or .xlsx) — same
-              columns as the existing Zenoti/HRMS consolidated report. Rows are automatically
-              grouped by Center and scored per the current KPI config.
-            </p>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="period">Period</Label>
-              <Input id="period" name="period" type="month" required className="max-w-xs" />
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="file">Report file</Label>
-              <Input id="file" name="file" type="file" accept=".csv,.xlsx,.xls" required />
-            </div>
-            <Button type="submit" disabled={loading} className="w-fit">
-              {loading ? "Processing..." : "Upload and calculate scores"}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+      {showHeader ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Upload Monthly Report</CardTitle>
+          </CardHeader>
+          <CardContent>{form}</CardContent>
+        </Card>
+      ) : (
+        form
+      )}
 
       {response?.error && (
         <Card className="border-destructive">

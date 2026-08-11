@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScoreRing } from "@/components/score-ring";
+import { MonthlyUpdateSection } from "@/components/monthly-update-section";
 import { ratingBadgeVariant } from "@/lib/scoring-display";
 
 function formatPeriod(period: string | null) {
@@ -36,6 +37,8 @@ export async function ExecutiveOverview() {
           )}
         </p>
       </div>
+
+      <MonthlyUpdateSection locations={overview.locations} />
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <Card>
